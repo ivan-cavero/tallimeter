@@ -154,3 +154,14 @@ describe("brand marks", () => {
     }
   });
 });
+
+describe("documentation links", () => {
+  it("points every brand at a specific page, not a site root", () => {
+    // A docs link is the remedy the empty card offers, so a dead one costs a user the fix.
+    // The reachability of each URL is checked by hand; the shape is checked here.
+    for (const [id, brand] of Object.entries(BRANDS)) {
+      const path = new URL(brand.docsUrl).pathname.replace(/\/+$/, "");
+      expect(path.length, `${id} docs path`).toBeGreaterThan(1);
+    }
+  });
+});
