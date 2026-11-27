@@ -36,8 +36,11 @@ An empty table is fine; an error about plugins being disabled is not.
 ## 3. Install the plugin
 
 ```bash
-paseo plugin install ivan-cavero/tallimeter
+paseo plugin install git:ivan-cavero/tallimeter
 ```
+
+The `git:` prefix is required until the plugin is listed in the registry. Without it, Paseo
+looks for a registry listing and reports that the plugin was not found.
 
 Paseo clones the repository, compiles the TypeScript and starts the plugin. There is no build
 command in the manifest, so nothing runs `npm install` for you.

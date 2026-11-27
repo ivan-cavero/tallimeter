@@ -21,7 +21,9 @@ git push -u origin main
 ```
 
 A public GitHub repository is enough for direct installation. No registry step is needed for
-`paseo plugin install ivan-cavero/tallimeter` to work.
+`paseo plugin install git:ivan-cavero/tallimeter` to work. The registry listing is what removes the
+`git:` prefix, because a bare `owner/slug` is resolved against the registry and fails until it is
+listed.
 
 ## 2. Add an interface image (recommended)
 

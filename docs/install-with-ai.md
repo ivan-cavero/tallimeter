@@ -32,7 +32,8 @@ invent a result.
    - whether node:sqlite is available in the Paseo runtime (it reads OpenCode usage)
    - whether the desktop keyring tool exists: `secret-tool` (Linux) or `security` (macOS)
 
-2. INSTALL. Run `paseo plugin install ivan-cavero/tallimeter`. If the source is already a local
+2. INSTALL. Run `paseo plugin install git:ivan-cavero/tallimeter`. The `git:` prefix is
+   required: a bare owner/repository is treated as a registry listing. If the source is already a local
    checkout, use `paseo plugin install /absolute/path/to/tallimeter` instead. Then require
    `paseo plugin ls tallimeter` to say "running" with an empty error column. If it does not,
    read `paseo plugin logs tallimeter` and quote the error.

@@ -23,10 +23,13 @@ is worse than an empty meter.
 ## Install
 
 ```bash
-paseo plugin install ivan-cavero/tallimeter
+paseo plugin install git:ivan-cavero/tallimeter
 ```
 
-That is the whole install. Paseo compiles the TypeScript itself, so there is no build step and no
+The prefix goes away once the plugin is listed in the Paseo registry, which turns the same command
+into `paseo plugin install ivan-cavero/tallimeter`.
+
+Either form is the whole install. Paseo compiles the TypeScript itself, so there is no build step and no
 `npm install` on your machine. Tallimeter requires Paseo 0.17.4 or later.
 
 From a checkout instead:
