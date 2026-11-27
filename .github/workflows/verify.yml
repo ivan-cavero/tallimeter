@@ -1,0 +1,20 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Typecheck client, server and tests, then run the offline suite. The live probe is not
+      # part of this job: it needs real vendor credentials and reaches the network.
+      - run: npm run verify

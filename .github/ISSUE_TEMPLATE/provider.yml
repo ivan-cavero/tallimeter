@@ -1,0 +1,37 @@
+name: A provider card is wrong
+description: Report a vendor whose spend or meter does not match the vendor's own dashboard
+labels: [provider]
+body:
+  - type: dropdown
+    id: vendor
+    attributes:
+      label: Which provider
+      options: [Claude, OpenCode Go, OpenDesign, Codex, Gemini, OpenRouter, Ollama, DeepSeek, Kimi, GitHub Copilot, Pi]
+    validations:
+      required: true
+  - type: dropdown
+    id: part
+    attributes:
+      label: Which part is wrong
+      options: [Spend total, Turn or token count, Cache hit share, A quota window, Wallet or balance, Reset countdown]
+    validations:
+      required: true
+  - type: input
+    id: paseo
+    attributes:
+      label: Paseo version
+      description: Output of `paseo --version`
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the vendor's own dashboard says, and what the card says
+      description: Numbers only, please. Never paste a key, a cookie or a token.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: The snapshot line from `paseo plugin logs tallimeter`
+      description: The `[usage] ...` line lists the stores read and the windows found. It contains no credentials.
