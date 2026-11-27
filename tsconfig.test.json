@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals"],
+    "lib": ["ES2023", "DOM"],
+    "noEmit": true
+  },
+  "include": ["tests/**/*.ts", "server/**/*.ts", "shared/**/*.ts"]
+}

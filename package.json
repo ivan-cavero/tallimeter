@@ -1,0 +1,54 @@
+{
+  "name": "tallimeter",
+  "version": "0.1.0",
+  "description": "Per-account AI spend, budgets, cache hit rate and subscription reset windows for the agents Paseo runs.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivan-cavero/tallimeter.git"
+  },
+  "keywords": [
+    "paseo",
+    "paseo-plugin",
+    "usage",
+    "budget",
+    "quota",
+    "ai-spend"
+  ],
+  "files": [
+    "paseo-plugin.json",
+    "OVERVIEW.md",
+    "OVERVIEW.*.md",
+    "LICENSE",
+    "README.md",
+    "CONTRIBUTING.md",
+    "INSTALL.md",
+    "docs/",
+    "index.client.ts",
+    "index.client.tsx",
+    "index.server.ts",
+    "index.server.tsx",
+    "client/",
+    "server/",
+    "shared/"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.server.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run typecheck:test && npm run test",
+    "test:live": "esbuild tests/live.mts --bundle --platform=node --format=esm --outfile=.dev/live.mjs --external:node:* && node .dev/live.mjs"
+  },
+  "devDependencies": {
+    "@getpaseo/plugin": "0.17.4",
+    "@tanstack/react-query": "^5.90.11",
+    "@types/node": "^22.20.4",
+    "@types/react": "~19.2.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7",
+    "zod": "^4.4.3"
+  }
+}
