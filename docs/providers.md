@@ -106,8 +106,11 @@ Implemented from the vendors' published shapes, UNVERIFIED live (no credential h
   no window.
 - Kimi: `GET api.kimi.com/coding/v1/usages` with `Bearer <key>`. Windows carry `used_ratio` as a
   0..1 fraction (**used**, not remaining), so it is multiplied by 100.
-- Copilot: the GitHub device flow, then `GET api.github.com/copilot_internal/user` for the monthly
-  premium-request allowance. The token comes from `gh`'s own store.
+- Copilot: `GET api.github.com/copilot_internal/user`, **verified live** on 2026-11-27 with a `gh`
+  token. Windows are `quota_snapshots.premium_interactions` (and `chat` / `completions` on plans
+  that cap them), each with `entitlement` and `remaining`. An allowance the plan does not include
+  reports `entitlement: 0` and `has_quota: false`, which is an absent window: reading it as 100%
+  used would alarm a user about an allowance they never had.
 
 ## Pi
 

@@ -85,10 +85,10 @@ of being invented.
 | GitHub Copilot | Copilot turns | Monthly premium-request allowance |
 | Pi | Pi transcripts | Whatever vendor login the session uses |
 
-Claude and OpenDesign are verified against real accounts here. The rest are implemented from the
-vendors' own documentation and tested against recorded response shapes, and are marked
-**unverified live** in [docs/providers.md](docs/providers.md) until someone with a real credential
-runs `npm run test:live`.
+Claude, OpenDesign and GitHub Copilot are verified against real accounts here. The rest are
+implemented from the vendors' own documentation and tested against recorded response shapes, and
+are marked **unverified live** in [docs/providers.md](docs/providers.md) until someone with a real
+credential runs `npm run test:live`.
 
 ## Multiple accounts per vendor
 
@@ -174,7 +174,7 @@ shared/contracts.ts        Zod contracts and the settings document
 `npm test` runs the suites offline: provider parsers against recorded fixtures, credential-file
 permissions and redaction, cycle maths, discovery and its transcript cache, quota routing, cost and
 cache ratio, plan grouping, browser-import refusals, brand marks, and the network path against a
-stubbed `fetch`, so no request leaves the machine. 123 tests across 10 files.
+stubbed `fetch`, so no request leaves the machine. 126 tests across 10 files.
 
 ## Publishing notes
 

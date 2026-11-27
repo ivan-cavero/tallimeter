@@ -79,10 +79,37 @@ describe("kimi coding plan", () => {
 });
 
 describe("copilot premium requests", () => {
-  it("uses the vendor's own percent_remaining", () => {
+  it("computes used from entitlement and remaining", () => {
+    // The counts are preferred over the vendor's percent field: they are exact, and the two have
+    // been seen to disagree by a rounding step.
     const quota = parseCopilotUser(fixtures.copilotPremium);
+    expect(quota?.windows[0]?.id).toBe("premium_interactions");
     expect(quota?.windows[0]?.usedPct).toBeCloseTo(12);
-    expect(quota?.windows[0]?.id).toBe("premium");
+  });
+
+  it("skips an unlimited allowance instead of drawing it at zero", () => {
+    // Chat and completions are unlimited on this plan: no cap means no meter, not a 0% one.
+    const quota = parseCopilotUser(fixtures.copilotPremium);
+    expect(quota?.windows.map((window) => window.id)).toEqual(["premium_interactions"]);
+  });
+
+  it("treats a zero entitlement as an absent allowance, not a used-up one", () => {
+    // A free plan reports entitlement 0 with has_quota false. Reading that as 100% used would
+    // look like an alarm for an allowance the plan simply does not include.
+    const quota = parseCopilotUser({
+      copilot_plan: "individual",
+      quota_snapshots: { premium_interactions: { entitlement: 0, remaining: 0, has_quota: false, percent_remaining: 0 } },
+    });
+    expect(quota).toBeNull();
+  });
+
+  it("reports a real allowance when a plan does include one", () => {
+    const quota = parseCopilotUser({
+      copilot_plan: "individual",
+      quota_snapshots: { chat: { entitlement: 200, remaining: 196 }, completions: { entitlement: 2000, remaining: 1969 } },
+    });
+    expect(quota?.windows.map((window) => window.id)).toEqual(["chat", "completions"]);
+    expect(quota?.windows[0]?.usedPct).toBeCloseTo(2);
   });
 
   it("derives the percentage from entitlement and remaining when percent is absent", () => {

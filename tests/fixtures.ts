@@ -222,7 +222,11 @@ export const kimiRatios = {
   },
 };
 
-/** Copilot, `GET /copilot_internal/user`. `percent_remaining` is remaining, not used. */
+/**
+ * Copilot, `GET /copilot_internal/user`, checked live on 2026-11-27. `percent_remaining` is
+ * remaining, and an allowance the plan does not include reports `entitlement: 0` with
+ * `has_quota: false`, which is an absent window rather than a full one.
+ */
 export const copilotPremium = {
   copilot_plan: "individual_pro",
   access_type_sku: "annual_individual_pro",

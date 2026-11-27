@@ -39,9 +39,9 @@ weekly windows plus credits, Gemini's per-model buckets, OpenRouter's per-key bu
 included allowance and purchased credits, DeepSeek's prepaid balance, Kimi's coding-plan windows and
 Copilot's monthly premium requests.
 
-Claude and OpenDesign were verified against real accounts while building this. The others are built
-from their vendors' published responses and tested against recorded shapes, which is stated per
-vendor in the repository's provider notes.
+Claude, OpenDesign and GitHub Copilot were verified against real accounts while building this. The
+others are built from their vendors' published responses and tested against recorded shapes, which
+is stated per vendor in the repository's provider notes.
 
 ## Setup
 

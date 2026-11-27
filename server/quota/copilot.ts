@@ -29,31 +29,37 @@ const iso = (value: unknown): string | null => {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
 };
 
+/** Named allowances Copilot reports as a capped window, in the order worth showing. */
+const NAMED: Array<[string, string, string]> = [
+  ["premium_interactions", "Premium requests", "prem"],
+  ["chat", "Chat requests", "chat"],
+  ["completions", "Completions", "cmp"],
+];
+
 export function parseCopilotUser(body: Record<string, any>): Quota | null {
   const windows: QuotaWindow[] = [];
-  const snapshot = body.quota_snapshots?.premium_interactions as Record<string, any> | undefined;
+  const snapshots = (body.quota_snapshots ?? {}) as Record<string, Record<string, any> | undefined>;
+  const resetsAt = iso(body.quota_reset_date ?? body.quota_reset_date_utc);
 
-  if (snapshot) {
+  for (const [key, label, shortLabel] of NAMED) {
+    const snapshot = snapshots[key];
+    if (!snapshot) continue;
     const entitlement = num(snapshot.entitlement) ?? num(snapshot.total);
+    // A plan without this allowance reports entitlement 0 and `has_quota: false`. That is an
+    // absent window, not a used-up one: a free plan read as "100% used" is the kind of wrong that
+    // looks like an alarm.
+    if (snapshot.has_quota === false || (entitlement !== null && entitlement <= 0)) continue;
     const remaining = num(snapshot.remaining);
     const percentRemaining = num(snapshot.percent_remaining);
     // Used percent is derivable from either the counts or the vendor's own percentage.
     const usedPct =
-      percentRemaining !== null
-        ? Math.max(0, Math.min(100 - percentRemaining, 100))
-        : entitlement !== null && entitlement > 0 && remaining !== null
-          ? Math.max(0, Math.min(((entitlement - remaining) / entitlement) * 100, 100))
+      entitlement !== null && entitlement > 0 && remaining !== null
+        ? Math.max(0, Math.min(((entitlement - remaining) / entitlement) * 100, 100))
+        : percentRemaining !== null
+          ? Math.max(0, Math.min(100 - percentRemaining, 100))
           : null;
-    if (usedPct !== null) {
-      windows.push({
-        id: "premium",
-        label: "Premium requests",
-        shortLabel: "prem",
-        usedPct,
-        resetsAt: iso(body.quota_reset_date ?? body.quota_reset_date_utc),
-        durationSeconds: 2_592_000,
-      });
-    }
+    if (usedPct === null) continue;
+    windows.push({ id: key, label, shortLabel, usedPct, resetsAt, durationSeconds: 2_592_000 });
   }
 
   const plan = String(body.copilot_plan ?? body.copilotPlan ?? "");
