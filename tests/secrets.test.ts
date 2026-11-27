@@ -1,7 +1,7 @@
-import { mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { credentialFor, describeCredentials, readCredentials, removeCredential, setCredential, writeCredentials } from "../server/secrets";
 import { periodFor } from "../server/aggregate";
 
@@ -109,5 +109,53 @@ describe("aggregate cost", () => {
     const inputCost = costOf("m", { input: 1_000_000, output: 0, cacheRead: 0, cacheWrite: 0 }, catalog);
     expect(cacheCost).toBeCloseTo(0.3, 6);
     expect(inputCost).toBeCloseTo(3, 6);
+  });
+});
+
+describe("upgrade from the pre-rename credential file", () => {
+  const original = process.env.HOME;
+  let dir = "";
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "tallimeter-legacy-"));
+    mkdirSync(join(dir, ".paseo"), { recursive: true });
+    process.env.HOME = dir;
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    process.env.HOME = original;
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("adopts the old file once and keeps the original in place", async () => {
+    const legacy = join(dir, ".paseo", "paseo-usage-credentials.json");
+    writeFileSync(legacy, JSON.stringify({ "opendesign:default": { value: "cookie-1234", kind: "cookie" } }));
+
+    const { readCredentials } = await import("../server/secrets");
+    const adopted = readCredentials();
+    expect(adopted["opendesign:default"]?.value).toBe("cookie-1234");
+    // The old file is copied rather than consumed, because only the user can decide to delete it.
+    expect(existsSync(legacy)).toBe(true);
+
+    const current = join(dir, ".paseo", "tallimeter-credentials.json");
+    expect(statSync(current).mode & 0o777).toBe(0o600);
+  });
+
+  it("never overwrites a credential file that already exists", async () => {
+    const legacy = join(dir, ".paseo", "paseo-usage-credentials.json");
+    writeFileSync(legacy, JSON.stringify({ "openrouter:default": { value: "old-key" } }));
+    const current = join(dir, ".paseo", "tallimeter-credentials.json");
+    writeFileSync(current, JSON.stringify({ "openrouter:default": { value: "new-key" } }));
+
+    const { readCredentials } = await import("../server/secrets");
+    expect(readCredentials()["openrouter:default"]?.value).toBe("new-key");
+  });
+
+  it("survives a corrupt legacy file without throwing", async () => {
+    const legacy = join(dir, ".paseo", "paseo-usage-credentials.json");
+    writeFileSync(legacy, "{not json");
+    const { readCredentials } = await import("../server/secrets");
+    expect(readCredentials()).toEqual({});
   });
 });

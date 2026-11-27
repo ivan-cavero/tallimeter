@@ -30,6 +30,12 @@ export type CredentialsFile = Record<string, CredentialEntry>;
 
 const DIR = join(homedir(), ".paseo");
 const FILE = join(DIR, "tallimeter-credentials.json");
+/**
+ * The plugin was called `paseo-usage` before it was published. A user who set it up then already
+ * has a credential file, and silently losing their vendor sessions on upgrade would be a bug from
+ * their point of view, so the old file is adopted once, on first read, and left untouched.
+ */
+const LEGACY_FILE = join(DIR, "paseo-usage-credentials.json");
 /** Parsed file, kept for two seconds so one snapshot does not re-read it per account. */
 let cache: { at: number; value: CredentialsFile } | null = null;
 
@@ -37,9 +43,25 @@ export function credentialsPath(): string {
   return FILE;
 }
 
+/**
+ * Adopts the pre-rename file once. It is copied, not moved: deleting a file the user cannot
+ * recreate from anything but a fresh browser sign-in is the kind of cleanup that should be their
+ * decision.
+ */
+function adoptLegacyFile(): void {
+  if (existsSync(FILE) || !existsSync(LEGACY_FILE)) return;
+  try {
+    const parsed = JSON.parse(readFileSync(LEGACY_FILE, "utf8")) as CredentialsFile;
+    if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) writeCredentials(parsed);
+  } catch {
+    // An unreadable legacy file is not worth failing a read over.
+  }
+}
+
 /** Reads the credential file. A missing or corrupt file is an empty store, never a throw. */
 export function readCredentials(): CredentialsFile {
   if (cache && Date.now() - cache.at < 2_000) return cache.value;
+  adoptLegacyFile();
   let value: CredentialsFile = {};
   if (existsSync(FILE)) {
     try {
