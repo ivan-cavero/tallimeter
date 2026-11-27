@@ -51,7 +51,7 @@ invent a result.
    Never paste a credential into a file, a command line, or chat.
 
 5. VERIFY. Re-open the Usage screen, or read `paseo plugin logs tallimeter` and quote the
-   summary line it prints, e.g. "4 stores, 3 cards; OpenDesign:2w". State which cards have spend,
+   summary line it prints, e.g. "[tallimeter] 4 stores, 3 cards; OpenDesign:2w". State which cards have spend,
    which have meters, and which have neither, and why.
 
 6. REPORT. Give me a short table: vendor, spend visible, meter visible, and the next action for

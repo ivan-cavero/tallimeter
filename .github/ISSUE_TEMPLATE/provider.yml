@@ -34,4 +34,4 @@ body:
     id: logs
     attributes:
       label: The snapshot line from `paseo plugin logs tallimeter`
-      description: The `[usage] ...` line lists the stores read and the windows found. It contains no credentials.
+      description: The `[tallimeter] ...` line lists the stores read and the windows found. It contains no credentials.

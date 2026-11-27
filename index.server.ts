@@ -155,7 +155,7 @@ export default function contribute(server: PluginServerContext) {
     const summary = result.accounts
       .filter((account) => account.kind === "opendesign" || (account.quota?.windows.length ?? 0) > 0)
       .map((account) => `${account.label}:${account.quota?.windows.length ?? 0}w`);
-    console.log(`[usage] ${refs.length} stores, ${result.accounts.length} cards; ${summary.join(" | ")}`);
+    console.log(`[tallimeter] ${refs.length} stores, ${result.accounts.length} cards; ${summary.join(" | ")}`);
     return { generatedAt: new Date().toISOString(), ...result };
   });
 

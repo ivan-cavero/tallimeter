@@ -124,29 +124,16 @@ accepted the value. A credential that cannot be checked live says so rather than
 
 ## 7. Set budgets (optional)
 
-**Settings → Plugins → Tallimeter → Cycle** sets the day a billing period starts and the hours and
-hourly rate used to translate spend into days of work. Leaving the rate at zero keeps "days of
-work"
-hidden, which is the point: without a rate it would be an invented number.
+**Settings → Plugins → Tallimeter → Budgets** takes a monthly budget per account. A card with a
+budget gains a percentage, a projection to the end of the cycle, and the date the projection crosses
+the budget. Leave the field empty for an account you do not want to budget.
 
-Per-account budgets are not exposed in the settings screen yet. They live in
-`~/.paseo/plugin-settings/tallimeter/usage-settings.json`:
+**Cycle** sets the day a billing period starts and the hours and hourly rate used to translate
+spend into days of work. Leaving the rate at zero keeps "days of work" hidden, which is the point:
+without a rate it would be an invented number.
 
-```json
-{
-  "version": 1,
-  "values": {
-    "accounts": {
-      "pi-1:opendesign": { "budgetUsd": 20, "cycleStartDay": 1, "label": "OpenDesign plan" }
-   },
-    "defaultCycleStartDay": 1,
-    "hoursPerWorkday": 8,
-    "hourlyRateUsd": 0
-  }
-}
-```
-
-The account key is the card id shown in the logs: `<store id>:<vendor>`.
+Budgets and cycle settings are saved together on the same host, so a budget set on a desktop is
+visible on the phone that connects to that host.
 
 ## 8. Verify it works
 
@@ -159,8 +146,8 @@ paseo plugin logs tallimeter
 ```
 
 The first line of every snapshot is a summary like
-`[usage] 4 stores, 3 cards; OpenDesign · shared plan:2w`, which tells you how many stores were read
-and how many windows came back. If it says `no reading` for a vendor you set up, that vendor's
+`[tallimeter] 4 stores, 3 cards; OpenDesign · shared plan:2w`, which tells you how many stores were
+read and how many windows came back. If it says `no reading` for a vendor you set up, that vendor's
 credential is missing, rejected, or of the wrong kind.
 
 ## Troubleshooting
