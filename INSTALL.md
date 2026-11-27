@@ -18,12 +18,8 @@ If the command is not found, install Paseo first and come back:
 
 ## 2. Turn plugins on
 
-Paseo refuses to run any plugin while the global switch is off. In the app, open
-**Settings → Plugins** and enable plugins. The CLI equivalent:
-
-```bash
-paseo config set pluginsEnabled true    # or edit ~/.paseo/config.json
-```
+Paseo refuses to run any plugin while the global switch is off. There is no CLI command for it, so
+in the app open **Settings → Plugins** and enable plugins there.
 
 Check the switch took:
 
@@ -31,7 +27,12 @@ Check the switch took:
 paseo plugin ls
 ```
 
-An empty table is fine; an error about plugins being disabled is not.
+An empty table is fine; an error about plugins being disabled is not. If you need to set it by
+hand, it is `pluginsEnabled` in `~/.paseo/config.json`, and `paseo reload` picks the change up
+without a restart.
+
+On a remote or paired host, the switch belongs to that daemon: set it there, not in your local
+copy.
 
 ## 3. Install the plugin
 
