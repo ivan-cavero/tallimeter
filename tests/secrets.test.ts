@@ -2,7 +2,6 @@ import { existsSync, mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync } f
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { credentialFor, describeCredentials, readCredentials, removeCredential, setCredential, writeCredentials } from "../server/secrets";
 import { periodFor } from "../server/aggregate";
 
 /** The credential file is the only place a secret lives, so its rules are tested hard. */

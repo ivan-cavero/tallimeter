@@ -8,6 +8,10 @@
     "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    // An exported or declared name that nothing reads is either a mistake or dead weight, and
+    // both are cheaper to catch here than in a review.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true,
     "noEmit": true,
     "esModuleInterop": true,

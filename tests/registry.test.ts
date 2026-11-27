@@ -54,7 +54,7 @@ describe("brand registry", () => {
   });
 
   it("states a quota kind for every brand", () => {
-    for (const [id, brand] of entries) {
+    for (const [, brand] of entries) {
       expect(["subscription", "balance", "none"]).toContain(brand.quota);
     }
   });

@@ -997,11 +997,9 @@ function CredentialsSection({ theme, brands }: { theme: Theme; brands: ProviderB
  * uses, so a budget set here applies to that account's card whichever harness spends on it.
  */
 function BudgetsSection({
-  theme,
   values,
   update,
 }: {
-  theme: Theme;
   values: UsageSettings;
   update: (patch: Partial<UsageSettings>) => void;
 }) {
@@ -1039,7 +1037,7 @@ function BudgetsSection({
   );
 }
 
-function CycleSection({ theme, values, update }: { theme: Theme; values: UsageSettings; update: (patch: Partial<UsageSettings>) => void }) {
+function CycleSection({ values, update }: { values: UsageSettings; update: (patch: Partial<UsageSettings>) => void }) {
   return (
     <SettingsSection title="Cycle" info="When a billing period starts, and how a workday is priced.">
       <SettingsInput
@@ -1107,8 +1105,8 @@ export function UsageSettingsScreen({ theme, layout }: PluginSurfaceProps) {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <AccountsSection theme={theme} />
       <CredentialsSection theme={theme} brands={brandsQuery.data?.brands ?? []} />
-      <BudgetsSection theme={theme} values={values} update={update} />
-      <CycleSection theme={theme} values={values} update={update} />
+      <BudgetsSection values={values} update={update} />
+      <CycleSection values={values} update={update} />
 
       {settings.saveError ? (
         <Text style={{ color: theme.colors.statusDanger, paddingHorizontal: 16, fontSize: 11 }}>{settings.saveError}</Text>
