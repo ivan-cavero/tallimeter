@@ -39,10 +39,6 @@ const LEGACY_FILE = join(DIR, "paseo-usage-credentials.json");
 /** Parsed file, kept for two seconds so one snapshot does not re-read it per account. */
 let cache: { at: number; value: CredentialsFile } | null = null;
 
-export function credentialsPath(): string {
-  return FILE;
-}
-
 /**
  * Adopts the pre-rename file once. It is copied, not moved: deleting a file the user cannot
  * recreate from anything but a fresh browser sign-in is the kind of cleanup that should be their

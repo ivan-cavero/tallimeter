@@ -243,7 +243,7 @@ export async function readTurns(ref: StoreRef, since: number): Promise<Turn[]> {
 
 /* ------------------------------- Discovery ------------------------------- */
 
-export function expandHome(value: string): string {
+function expandHome(value: string): string {
   return value.startsWith("~/") ? join(HOME, value.slice(2)) : value;
 }
 
@@ -255,7 +255,7 @@ interface ProviderConfig {
   models?: { id?: string; isDefault?: boolean }[];
 }
 
-export function readProviderConfig(): Record<string, ProviderConfig> {
+function readProviderConfig(): Record<string, ProviderConfig> {
   try {
     const raw = readFileSync(join(HOME, ".paseo", "config.json"), "utf8");
     const parsed = JSON.parse(raw);
