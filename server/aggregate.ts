@@ -137,6 +137,12 @@ interface Bucket {
   planId?: string;
 }
 
+/**
+ * How far back the aggregator asks for turns. A cycle can start up to a month back and the trend
+ * window looks thirty days back, so sixty-two days covers both with margin.
+ */
+const LOOKBACK_MS = 62 * 86_400_000;
+
 export async function buildSnapshot(input: AggregateInput): Promise<{
   accounts: AccountStat[];
   totals: Totals;
@@ -176,9 +182,7 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
   for (const ref of input.refs) {
     let turns: Turn[];
     try {
-      // The oldest instant any number on screen can depend on: a cycle can begin up to a month
-      // back, and the trend window looks 30 days back, so 62 days covers both.
-      turns = await readTurns(ref, now.getTime() - 62 * 86_400_000);
+      turns = await readTurns(ref, now.getTime() - LOOKBACK_MS);
     } catch (error) {
       warnings.push(`${ref.label}: ${error instanceof Error ? error.message : String(error)}`);
       continue;
@@ -190,7 +194,6 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
       ref.kind === "opendesign"
         ? turns.map((turn) => (turn.provider === "anthropic" ? { ...turn, provider: "opendesign" } : turn))
         : turns;
-    ref.providers = [...new Set(normalised.map((turn) => turn.provider))];
     for (const turn of normalised) {
       const quotaKey = quotaKeyFor(ref, turn.provider, ref.kind, planId);
       // One card per plan, aggregating every harness that spends against it.

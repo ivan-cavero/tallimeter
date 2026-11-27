@@ -2,7 +2,6 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-
 export type Kind = "claude" | "opencode" | "pi" | "opendesign" | "other";
 
 export interface Turn {
@@ -31,11 +30,6 @@ export interface StoreRef {
   quotaKind: QuotaKind;
   /** OpenCode provider logins live under this data home; unset for the default account. */
   dataHome?: string;
-  /**
-   * Vendors this store can produce allowance for, discovered from the turns it holds. A single
-   * OpenCode database can serve OpenDesign and OpenCode at once, so this is not fixed config.
-   */
-  providers?: string[];
 }
 
 const HOME = homedir();
