@@ -73,10 +73,6 @@ const NAMED: Array<[string, string, string]> = [
 ];
 
 /**
- * Anthropic's own usage endpoint, the same one Claude Code's `/usage` reads. Cache 90 s per
- * account because the endpoint rate-limits rapid repeats.
- */
-/**
  * Turns the usage body into windows. Exported so tests can run it without a network or a
  * credential: the parse is the part that a vendor changing its shape would break.
  */
@@ -118,6 +114,11 @@ export function parseAnthropicUsage(body: Record<string, any>): {
   };
 }
 
+/**
+ * Anthropic's own usage endpoint, the same one Claude Code's `/usage` reads. Cached 90 s per
+ * account because the endpoint rate-limits rapid repeats, and the fuller read is retried without
+ * the spend section when it is refused.
+ */
 export async function readClaudeQuota(
   configDir: string,
   opts: { forceRefresh?: boolean } = {},

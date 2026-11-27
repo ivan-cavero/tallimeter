@@ -74,10 +74,6 @@ async function readGoKey(dataHome: string): Promise<string | null> {
   }
 }
 
-/**
- * OpenCode Go reports percentages per window, not token counts. The endpoint is undocumented but
- * stable enough that several clients depend on it; a failure here never invents a number.
- */
 /** Pure window mapping, so the Go plan's percent payload can be tested offline. */
 export function parseGoUsage(body: { usage?: Record<string, any> }): QuotaWindow[] {
   const usage = body.usage ?? {};
@@ -97,6 +93,10 @@ export function parseGoUsage(body: { usage?: Record<string, any> }): QuotaWindow
   return windows;
 }
 
+/**
+ * OpenCode Go reports percentages per window, not token counts. The endpoint is undocumented but
+ * stable enough that several clients depend on it; a failure here never invents a number.
+ */
 export async function readGoQuota(
   dataHome: string,
   opts: { forceRefresh?: boolean } = {},

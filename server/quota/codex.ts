@@ -38,11 +38,6 @@ function readCodexAuth(codexHome: string): CodexAuth | null {
 }
 
 /**
- * `account/rateLimits/read` through the Codex app-server is the documented path. It needs the CLI
- * and a live process, so this uses `codex` only when it is installed: a plugin must not fork a
- * heavy process per refresh, and the CLI is the only honest source for these windows.
- */
-/**
  * Pure mapping of the ChatGPT backend usage body. Two shapes exist in the wild: a nested
  * `rate_limits` object with camelCase keys, and a flat body with snake_case ones.
  */

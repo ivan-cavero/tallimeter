@@ -39,12 +39,6 @@ interface CodingPlanWindow {
 }
 
 /**
- * OpenDesign Go/Pro allowance. An inference key (`sk-amr_…`) is chat-only and cannot read billing,
- * so this needs a control key (`vela_ctrl_…`, the same credential `vela login` stores) or a
- * pasted browser session cookie. The response nests the windows under `codingPlan` and reports
- * credits, not tokens.
- */
-/**
  * Maps a preflight or coding-plan-usage body to windows. Identity comes from durationSeconds,
  * never array position, so a reordered response cannot mislabel the 5-hour meter as weekly.
  */
@@ -83,6 +77,15 @@ export function parseOpenDesignPlan(body: Record<string, any>): {
   };
 }
 
+/**
+ * OpenDesign Go/Pro allowance. An inference key (`sk-amr_...`) is chat-only and cannot read
+ * billing, so this needs a control key (`vela_ctrl`, the same credential `vela login` stores) or a
+ * pasted browser session cookie. The response nests the windows under `codingPlan` and reports
+ * credits, not tokens.
+ *
+ * Three credential shapes reach this function: a full cookie header, a bare session token, and a
+ * control key. Only cookies and control keys can read billing, and saying so beats a 401.
+ */
 export async function readOpenDesignQuota(
   input: { controlKey?: string; cookie?: string; workspaceId?: string },
   opts: { forceRefresh?: boolean } = {},
