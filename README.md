@@ -174,7 +174,7 @@ shared/contracts.ts        Zod contracts and the settings document
 `npm test` runs the suites offline: provider parsers against recorded fixtures, credential-file
 permissions and redaction, cycle maths, discovery and its transcript cache, quota routing, cost and
 cache ratio, plan grouping, browser-import refusals, brand marks, and the network path against a
-stubbed `fetch`, so no request leaves the machine. 126 tests across 10 files.
+stubbed `fetch`, so no request leaves the machine.
 
 ## Publishing notes
 

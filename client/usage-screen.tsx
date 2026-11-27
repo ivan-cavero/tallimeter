@@ -73,6 +73,12 @@ function BrandMark({
   return <Icon icon={{ svg: mark }} size={size} color={mono ? color : undefined} />;
 }
 
+/**
+ * Two whites are deliberately not theme colours: a monochrome glyph sits on a brand tile the
+ * registry darkened until white clears 4:1, and a meter's gloss strip is light on a coloured bar.
+ */
+const ON_BRAND = "#FFFFFF";
+
 type Theme = PluginScreenProps["theme"];
 type Layout = PluginScreenProps["layout"];
 
@@ -138,7 +144,7 @@ function Meter({
               top: 1,
               height: Math.max(Math.round(height * 0.45), 2),
               borderRadius: height / 2,
-              backgroundColor: "#FFFFFF",
+              backgroundColor: ON_BRAND,
               opacity: 0.22,
             }}
           />
@@ -321,11 +327,11 @@ function AccountCard({
               <BrandMark
                 mark={brand.mark}
                 size={brand.bleed ? 22 : 15}
-                color="#FFFFFF"
+                color={ON_BRAND}
                 mono={brand.mono && !brand.bleed}
               />
             ) : (
-              <Icon name={brand.icon} size={13} color="#FFFFFF" />
+              <Icon name={brand.icon} size={13} color={ON_BRAND} />
             )}
           </View>
           <Text
@@ -934,7 +940,7 @@ function CredentialsSection({ theme, brands }: { theme: Theme; brands: ProviderB
                     <BrandMark
                       mark={candidate.mark}
                       size={candidate.bleed ? 16 : 11}
-                      color="#FFFFFF"
+                      color={ON_BRAND}
                       mono={candidate.mono && !candidate.bleed}
                     />
                   </View>
