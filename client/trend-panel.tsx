@@ -32,6 +32,9 @@ export interface TrendProps {
   height?: number;
 }
 
+/** An ISO date as the short month-day the chart uses everywhere. */
+const shortDate = (iso: string | undefined): string => (iso ? iso.slice(5) : "");
+
 const usd = (value: number) =>
   value >= 1 ? `$${value.toFixed(2)}` : value >= 0.1 ? `$${value.toFixed(2)}` : value > 0 ? `$${value.toFixed(3)}` : "$0";
 
@@ -124,11 +127,15 @@ export function TrendPanel({ theme, dates, series, models, height = 132 }: Trend
       }));
 
     return { max, count, xAt, yAt, gridlines, lines, plotWidth, average, total };
-  }, [dates.length, series, plotWidth, plotHeight]);
+    // Keyed on what the geometry reads, not on array identity: the parent rebuilds `series` on every
+    // poll, and rebuilding this per poll made the chart re-measure every frame for no new data.
+  }, [dates, series, plotWidth, plotHeight]);
 
-  const windowCost = series.reduce((sum, line) => sum + line.daily.reduce((s, value) => s + value, 0), 0);
   const modelCost = models.reduce((sum, model) => sum + model.cost, 0);
-  const cursorCost = cursor !== null ? dates.map((_, i) => series.reduce((s, l) => s + (l.daily[i] ?? 0), 0))[cursor] ?? 0 : null;
+  // The total of every series on the day under the pointer, computed from the same arrays the
+  // lines were drawn from rather than from a freshly allocated per-day total.
+  const cursorCost =
+    cursor === null ? null : series.reduce((sum, line) => sum + (line.daily[cursor] ?? 0), 0);
 
   return (
     <View
@@ -152,12 +159,12 @@ export function TrendPanel({ theme, dates, series, models, height = 132 }: Trend
         </View>
         <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
           <Text style={{ color: theme.colors.foreground, fontSize: 12, fontWeight: "600" as const }}>
-            {usd(windowCost)}
+            {usd(geometry.total)}
           </Text>
           <Text style={{ color: theme.colors.foregroundMuted, fontSize: 10 }}>
             {cursor !== null
-              ? `${dates[cursor]?.slice(5)} · ${usd(cursorCost ?? 0)}`
-              : `avg ${usd(windowCost / Math.max(dates.length, 1))}/day`}
+              ? `${shortDate(dates[cursor])} · ${usd(cursorCost ?? 0)}`
+              : `avg ${usd(geometry.average)}/day`}
           </Text>
         </View>
       </View>
@@ -325,7 +332,7 @@ export function TrendPanel({ theme, dates, series, models, height = 132 }: Trend
               >
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
                   <Text style={{ color: theme.colors.foreground, fontSize: 10, fontWeight: "600" as const }}>
-                    {dates[cursor]?.slice(5)}
+                    {shortDate(dates[cursor])}
                   </Text>
                   <Text style={{ color: theme.colors.foreground, fontSize: 10, fontWeight: "600" as const }}>
                     {usd(cursorCost ?? 0)}
@@ -379,7 +386,7 @@ export function TrendPanel({ theme, dates, series, models, height = 132 }: Trend
                   fontSize: 9,
                 }}
               >
-                {dates[index]?.slice(5)}
+                {shortDate(dates[index])}
               </Text>
               ))}
           </>

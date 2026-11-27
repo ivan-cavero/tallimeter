@@ -539,6 +539,36 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
   const columns = layout.compact ? 1 : Math.min(Math.max(Math.floor((rowWidth + gap) / (300 + gap)), 1), 3);
   const columnWidth = columns > 1 ? (rowWidth - gap * (columns - 1)) / columns : rowWidth;
 
+  // One array per account, aligned to the same dates, plus the model totals across the window.
+  // Both depend only on the snapshot, so they are derived once per fetch rather than per render,
+  // and they are computed before the pending and error branches so the hook order never changes.
+  const trend = useMemo(() => {
+    const snapshot = query.data;
+    if (!snapshot) return { series: [], models: [] as Array<{ model: string; cost: number; turns: number }> };
+
+    const series = snapshot.accounts
+      .filter((account) => account.totals.turns > 0)
+      .map((account) => ({
+        id: account.id,
+        label: account.label,
+        color: account.brand.color,
+        daily: snapshot.history.map((day) => day.byAccount.find((entry) => entry.id === account.id)?.cost ?? 0),
+      }))
+      .filter((account) => account.daily.some((value) => value > 0));
+
+    const models = new Map<string, { model: string; cost: number; turns: number }>();
+    for (const day of snapshot.history) {
+      for (const model of day.models) {
+        const entry = models.get(model.model) ?? { model: model.model, cost: 0, turns: 0 };
+        entry.cost += model.cost;
+        entry.turns += model.turns;
+        models.set(model.model, entry);
+      }
+    }
+
+    return { series, models: [...models.values()].sort((a, b) => b.cost - a.cost) };
+  }, [query.data]);
+
   if (query.isPending) {
     return (
       <View style={styles.screen}>
@@ -558,27 +588,6 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
   }
 
   const data = query.data;
-
-  // The trend panel needs one array per account, aligned to the same dates.
-  const trendSeries = data.accounts
-    .filter((account) => account.totals.turns > 0)
-    .map((account) => ({
-      id: account.id,
-      label: account.label,
-      color: account.brand.color,
-      daily: data.history.map((day) => day.byAccount.find((entry) => entry.id === account.id)?.cost ?? 0),
-    }))
-    .filter((account) => account.daily.some((value) => value > 0));
-
-  const trendModels = new Map<string, { model: string; cost: number; turns: number }>();
-  for (const day of data.history) {
-    for (const model of day.models) {
-      const entry = trendModels.get(model.model) ?? { model: model.model, cost: 0, turns: 0 };
-      entry.cost += model.cost;
-      entry.turns += model.turns;
-      trendModels.set(model.model, entry);
-    }
-  }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -618,8 +627,8 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
         <TrendPanel
           theme={theme}
           dates={data.history.map((day) => day.date)}
-          series={trendSeries}
-          models={[...trendModels.values()].sort((a, b) => b.cost - a.cost)}
+          series={trend.series}
+          models={trend.models}
         />
       ) : null}
 
@@ -642,7 +651,7 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
           if (next > 0 && next !== rowWidth) setRowWidth(next);
         }}
       >
-      {data.accounts.flatMap((account) => [
+      {data.accounts.map((account) => (
           <AccountCard
             key={account.id}
             theme={theme}
@@ -659,8 +668,8 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
             }
             cardWidth={columnWidth}
             selfTotal={data.totals.cost}
-          />,
-        ])}
+          />
+        ))}
       </View>
 
       {data.warnings.map((warning) => (
