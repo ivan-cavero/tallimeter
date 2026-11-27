@@ -281,6 +281,8 @@ function AccountCard({
   const brand = account.brand;
   const empty = account.totals.turns === 0 && !account.quota;
   const tokens = account.totals.input + account.totals.output;
+  // Derived once per data change, so the chart's geometry memo can hit on a plain re-render.
+  const projectionPoints = useMemo(() => cumulative(account), [account]);
 
 
   return (
@@ -395,7 +397,7 @@ function AccountCard({
             {/* The chart answers "when do I run out", which is the question a spend number implies. */}
             <ProjectionChart
               theme={theme}
-              points={cumulative(account)}
+              points={projectionPoints}
               periodStart={Date.parse(account.periodStart)}
               periodEnd={Date.parse(account.periodEnd)}
               budgetUsd={account.budgetUsd}

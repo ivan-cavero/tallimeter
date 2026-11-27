@@ -145,7 +145,21 @@ export function ProjectionChart({
       endX: width,
       top,
     };
-  }, [points, periodStart, periodEnd, budgetUsd, spentUsd, projectedUsd, recommendedPerDayUsd, width, height]);
+    // `points` is rebuilt on every card render, so keying on it would rebuild this geometry every
+    // frame. The last point and the current spend are what the geometry actually reads.
+  }, [
+    points.length,
+    points.at(-1)?.at,
+    points.at(-1)?.spent,
+    periodStart,
+    periodEnd,
+    budgetUsd,
+    spentUsd,
+    projectedUsd,
+    recommendedPerDayUsd,
+    width,
+    height,
+  ]);
 
   const cycleLabel = new Date(periodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric" });
   const crossing = geometry.crossing;
