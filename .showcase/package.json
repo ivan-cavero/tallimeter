@@ -3,7 +3,7 @@
   "private": true,
   "description": "Capture harness for the registry screenshot. Not part of the plugin.",
   "scripts": {
-    "build": "esbuild entry.tsx --bundle --platform=browser --format=iife --jsx=automatic --outfile=showcase.js --alias:react-native=react-native-web --alias:@getpaseo/plugin/client=./shims/plugin-client.tsx --alias:@getpaseo/plugin/client/ui=./shims/plugin-ui.tsx --alias:@tanstack/react-query=./shims/react-query.tsx --define:process.env.NODE_ENV='\"production\"'",
+    "build": "esbuild entry.tsx --bundle --platform=browser --format=iife --jsx=automatic --outfile=showcase.js --alias:react-native=react-native-web --alias:react=./node_modules/react --alias:react/jsx-runtime=./node_modules/react/jsx-runtime.js --alias:react-dom/client=./node_modules/react-dom/client.js --alias:@getpaseo/plugin/client=./shims/plugin-client.tsx --alias:@getpaseo/plugin/client/ui=./shims/plugin-ui.tsx --alias:@tanstack/react-query=./shims/react-query.tsx --define:process.env.NODE_ENV='\"production\"'",
     "shot": "node shoot.mjs ../docs/images/screenshot.png 1440 2"
   },
   "devDependencies": {
