@@ -4,3 +4,6 @@ dist/
 *.tsbuildinfo
 .DS_Store
 *.log
+# The capture harness keeps its generated bundle and its installed tools out of the repository.
+.showcase/showcase.js
+.showcase/node_modules/

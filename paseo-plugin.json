@@ -2,7 +2,9 @@
   "id": "tallimeter",
   "name": "Tallimeter",
   "description": "Per-account AI spend, budgets, cache hit rate and subscription reset windows for the agents Paseo runs.",
-  "media": [],
+  "media": [
+    "docs/images/screenshot.png"
+  ],
   "requirements": {
     "paseo": ">=0.17.4"
   }

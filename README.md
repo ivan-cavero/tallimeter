@@ -20,6 +20,8 @@ Tallimeter never estimates a quota from local token counts. If a vendor read fai
 its spend numbers and shows no window, because an invented percentage looks authoritative and
 is worse than an empty meter.
 
+![The Usage screen: what this cycle cost, a 30-day trend, and one card per account with its allowance meters](docs/images/screenshot.png)
+
 ## Install
 
 ```bash
