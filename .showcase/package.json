@@ -1,0 +1,15 @@
+{
+  "name": "tallimeter-showcase",
+  "private": true,
+  "description": "Capture harness for the registry screenshot. Not part of the plugin.",
+  "scripts": {
+    "build": "esbuild entry.tsx --bundle --platform=browser --format=iife --jsx=automatic --outfile=showcase.js --alias:react-native=react-native-web --alias:@getpaseo/plugin/client=./shims/plugin-client.tsx --alias:@getpaseo/plugin/client/ui=./shims/plugin-ui.tsx --alias:@tanstack/react-query=./shims/react-query.tsx --define:process.env.NODE_ENV='\"production\"'",
+    "shot": "node shoot.mjs ../docs/images/screenshot.png 1440 2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native-web": "^0.21.2"
+  }
+}

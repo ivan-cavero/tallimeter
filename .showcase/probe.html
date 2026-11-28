@@ -1,0 +1,6 @@
+<!doctype html><html><body style="background:#111;color:#eee;font:12px monospace">
+<div id="root"></div><pre id="err"></pre>
+<script>window.__e=[];addEventListener("error",e=>{__e.push(e.message+" @ "+e.lineno)});addEventListener("unhandledrejection",e=>{__e.push("rej "+String(e.reason))});</script>
+<script src="./showcase.js"></script>
+<script>setTimeout(()=>{document.getElementById("err").textContent=__e.length?__e.join("\n"):"no errors; root children="+document.getElementById("root").childElementCount},1200)</script>
+</body></html>
