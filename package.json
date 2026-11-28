@@ -1,6 +1,6 @@
 {
   "name": "tallimeter",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Per-account AI spend, budgets, cache hit rate and subscription reset windows for the agents Paseo runs.",
   "license": "MIT",
   "repository": {
