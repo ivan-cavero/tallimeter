@@ -79,7 +79,7 @@ export default function contribute(server: PluginServerContext) {
     const state = await settings.read();
     return state.status === "ready"
       ? state.values
-      : { accounts: {}, defaultCycleStartDay: 1, hoursPerWorkday: 8, hourlyRateUsd: 0 };
+      : { accounts: {}, hideEmptyAccounts: false, defaultCycleStartDay: 1, hoursPerWorkday: 8, hourlyRateUsd: 0 };
   };
 
   server.handle(snapshotRpc, async (input) => {
@@ -147,6 +147,7 @@ export default function contribute(server: PluginServerContext) {
       prices,
       hoursPerWorkday: values.hoursPerWorkday,
       hourlyRateUsd: values.hourlyRateUsd,
+      hideEmptyAccounts: values.hideEmptyAccounts,
       openDesignPlanFor: planFor,
       openDesignPlans: planNames,
       resolveQuota,
@@ -155,7 +156,8 @@ export default function contribute(server: PluginServerContext) {
     const summary = result.accounts
       .filter((account) => account.kind === "opendesign" || (account.quota?.windows.length ?? 0) > 0)
       .map((account) => `${account.label}:${account.quota?.windows.length ?? 0}w`);
-    console.log(`[tallimeter] ${refs.length} stores, ${result.accounts.length} cards; ${summary.join(" | ")}`);
+    const cards = `${result.accounts.length} ${result.accounts.length === 1 ? "card" : "cards"}`;
+    console.log(`[tallimeter] ${refs.length} stores, ${cards}; ${summary.join(" | ")}`);
     return { generatedAt: new Date().toISOString(), ...result };
   });
 

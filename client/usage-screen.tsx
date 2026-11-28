@@ -7,6 +7,7 @@ import {
   SettingsInput,
   SettingsRow,
   SettingsSection,
+  SettingsSwitch,
 } from "@getpaseo/plugin/client/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -247,7 +248,7 @@ function QuotaLine({ theme, quotaWindow }: { theme: Theme; quotaWindow: QuotaWin
           {quotaWindow.label}
         </Text>
         <Text style={{ color, fontSize: 12, fontWeight: "700" as const }}>
-          {pct(used)} used{showPace ? "" : ` · ${pct(100 - used)} left`}
+          {pct(used)} used
         </Text>
       </View>
       <Meter theme={theme} used={used} color={color} height={7} evenAt={showPace ? null : elapsed} paceDots={paceDots} />
@@ -542,10 +543,18 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
   );
 
   // Two columns on a normal window, three when there is room. Each card needs ~300dp to stay
-  // readable, so the count is a floor of what fits, capped at three.
+  // readable, so the count is a floor of what fits, capped at three, and never more columns than
+  // cards: one tracked account takes the row instead of leaving empty columns beside it.
   const gap = layout.compact ? 8 : 12;
-  const columns = layout.compact ? 1 : Math.min(Math.max(Math.floor((rowWidth + gap) / (300 + gap)), 1), 3);
-  const columnWidth = columns > 1 ? (rowWidth - gap * (columns - 1)) / columns : rowWidth;
+  const accountCount = query.data?.accounts.length ?? 0;
+  // A lone account gets a wide card rather than a full-width strip: a 1400dp meter is hard to read
+  // at a glance, and one card stretched across the window stops looking like a card.
+  const columns = layout.compact
+    ? 1
+    : accountCount === 1
+      ? 2
+      : Math.min(Math.max(Math.floor((rowWidth + gap) / (300 + gap)), 1), 3, Math.max(accountCount, 1));
+  const columnWidth = (rowWidth - gap * (columns - 1)) / columns;
 
   // One array per account, aligned to the same dates, plus the model totals across the window.
   // Both depend only on the snapshot, so they are derived once per fetch rather than per render,
@@ -616,7 +625,7 @@ export function UsageScreen({ theme, layout, host }: PluginScreenProps) {
           </View>
           <View style={{ alignItems: "flex-end", gap: 1 }}>
             <Text style={{ color: theme.colors.foregroundMuted, fontSize: 11 }}>
-              {data.totals.turns} turns · {data.accounts.length} accounts
+              {data.totals.turns} turns · {data.accounts.length} {data.accounts.length === 1 ? "account" : "accounts"}
             </Text>
             <Text style={{ color: theme.colors.foregroundMuted, fontSize: 10 }}>
               updated {new Date(data.generatedAt).toLocaleTimeString()}
@@ -1040,6 +1049,12 @@ function BudgetsSection({
 function CycleSection({ values, update }: { values: UsageSettings; update: (patch: Partial<UsageSettings>) => void }) {
   return (
     <SettingsSection title="Cycle" info="When a billing period starts, and how a workday is priced.">
+      <SettingsSwitch
+        label="Hide accounts with nothing to show"
+        hint="A card with no spend, no window and no balance is an account that has never run. Hiding it keeps the screen about spend."
+        value={values.hideEmptyAccounts}
+        onValueChange={(next) => update({ hideEmptyAccounts: next })}
+      />
       <SettingsInput
         label="Cycle start day"
         hint="1 to 28. A billing period begins on this day each month."

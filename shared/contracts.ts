@@ -165,6 +165,11 @@ export const UsageSettingsSchema = z
         }),
       )
       .default({}),
+    /**
+     * Hide a card that has neither spend nor allowance: a configured provider nobody has used
+     * yet is noise on a screen whose job is answering "what am I spending".
+     */
+    hideEmptyAccounts: z.boolean().default(false),
     defaultCycleStartDay: z.number().min(1).max(28).default(1),
     /** Hours a full-time working day represents, used to translate spend into days of work. */
     hoursPerWorkday: z.number().min(1).max(24).default(8),
@@ -173,6 +178,7 @@ export const UsageSettingsSchema = z
   })
   .default({
     accounts: {},
+    hideEmptyAccounts: false,
     defaultCycleStartDay: 1,
     hoursPerWorkday: 8,
     hourlyRateUsd: 0,

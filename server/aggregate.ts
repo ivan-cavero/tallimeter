@@ -26,9 +26,39 @@ function cardLabel(
 ): string {
   if (override) return override;
   if (bucket.provider === "opendesign") {
-    return `OpenDesign · ${input.openDesignPlans?.[bucket.planId ?? "default"] ?? "shared plan"}`;
+    const plan = input.openDesignPlans?.[bucket.planId ?? "default"];
+    // A plan the user has not named is simply OpenDesign; appending "shared plan" to every card
+    // is noise, and there is only one plan to disambiguate from until they name a second.
+    return plan && plan !== "shared plan" ? `OpenDesign · ${plan}` : "OpenDesign";
   }
   return bucket.label || `${providerLabel(bucket.provider, bucket.kind)}${storeSuffix(bucket)}`;
+}
+
+/**
+ * The budget for a card, looked up by every key it answers to.
+ *
+ * A merged OpenDesign plan is fed by several harnesses, so which store happened to arrive first
+ * decides its card id: setting a budget against that one id would silently stop applying the day a
+ * different agent runs first. The card therefore accepts the budget under any provider id that fed
+ * it, and under the plan key, which is what the plan itself is called.
+ */
+function budgetFor(
+  bucket: Bucket,
+  budgets: AggregateInput["budgets"],
+): { budgetUsd?: number; cycleStartDay?: number; label?: string } {
+  // A card id is <store>:<vendor>, so every harness that fed the card names a valid key.
+  const keys = [
+    bucket.store.id,
+    cardId(bucket),
+    ...bucket.storeIds,
+    ...bucket.storeIds.map((id) => `${id}:${bucket.provider}`),
+  ];
+  if (bucket.planId) keys.push("plan:" + bucket.planId);
+  for (const key of keys) {
+    const found = budgets[key];
+    if (found) return found;
+  }
+  return {};
 }
 
 /** A brand as the card schema needs it: every field present, never optional. */
@@ -78,6 +108,11 @@ export interface AggregateInput {
   openDesignPlans?: Record<string, string>;
   /** Reads allowance for a store and the vendor that served its turns. */
   resolveQuota?: (ref: StoreRef, vendor: string) => Promise<Quota | null>;
+  /**
+   * Leave out a card with no spend, no window and no balance. A card always shown is one that
+   * would tell the user something; the rest is a provider entry that has never run.
+   */
+  hideEmptyAccounts?: boolean;
 }
 
 /** Human name for a provider id as the agents themselves report it. */
@@ -131,6 +166,8 @@ interface Bucket {
   store: StoreRef;
   /** Every store that fed this card, deduplicated when the label is built. */
   stores: string[];
+  /** Every provider id that fed this card, so a budget can be found by any of them. */
+  storeIds: string[];
   turns: Turn[];
   quotaKey: string | null;
   /** The OpenDesign plan this card spends against, when it is one. */
@@ -210,12 +247,14 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
           kind: turn.provider === "opendesign" ? "opendesign" : ref.kind,
           store: ref,
           stores: [ref.label],
+          storeIds: [ref.id],
           turns: [],
           quotaKey,
           planId,
         } satisfies Bucket);
       existing.turns.push(turn);
       existing.stores.push(ref.label);
+      if (!existing.storeIds.includes(ref.id)) existing.storeIds.push(ref.id);
       // Two plans are told apart by the harnesses that spend on them, so remember every store.
       buckets.set(key, existing);
     }
@@ -239,6 +278,7 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
         kind: "opendesign",
         store: ref,
         stores: [ref.label],
+        storeIds: [ref.id],
         turns: [],
         quotaKey: key,
         planId,
@@ -255,6 +295,7 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
       kind: ref.kind,
       store: ref,
       stores: [ref.label],
+      storeIds: [ref.id],
       turns: [],
       quotaKey:
         ref.quotaKind === "opendesign-or-anthropic"
@@ -265,9 +306,25 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
     });
   }
 
+  // Every provider that can spend against a card's plan, so a budget set on any of them is found
+  // by the shared card whichever harness happened to produce its first turn. A merged plan's card
+  // is built from one store, and a budget written against another one must still apply.
+  const providersPerPlan = new Map<string, string[]>();
+  for (const ref of input.refs) {
+    const planId = input.openDesignPlanFor?.(ref.id) ?? "default";
+    const list = providersPerPlan.get(planId) ?? [];
+    list.push(ref.id);
+    providersPerPlan.set(planId, list);
+  }
   for (const bucket of buckets.values()) {
-    // Budgets are written per card id by the settings screen, and older files used the store id.
-    const budget = input.budgets[bucket.store.id] ?? input.budgets[cardId(bucket)] ?? {};
+    if (!bucket.planId) continue;
+    for (const id of providersPerPlan.get(bucket.planId) ?? []) {
+      if (!bucket.storeIds.includes(id)) bucket.storeIds.push(id);
+    }
+  }
+
+  for (const bucket of buckets.values()) {
+    const budget = budgetFor(bucket, input.budgets);
     const startDay = budget.cycleStartDay ?? input.defaultStartDay;
     const { start, end } = periodFor(startDay, now);
     // Days for the trend panel, from this bucket's own turns.
@@ -387,6 +444,12 @@ export async function buildSnapshot(input: AggregateInput): Promise<{
     }
 
     const quota = quotaForBucket;
+
+    // A card with nothing to say is hidden only when asked: the empty state is a real answer
+    // ("this account exists and has not spent"), just not a useful one on a short screen.
+    const informative =
+      accountTotals.cost > 0 || (quota?.windows.length ?? 0) > 0 || (quota?.balanceUsd ?? null) !== null;
+    if (input.hideEmptyAccounts && !informative) continue;
 
     accounts.push({
       id: cardId(bucket),

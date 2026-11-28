@@ -202,3 +202,127 @@ describe("aggregate grouping", () => {
     );
   });
 });
+
+describe("hiding empty accounts", () => {
+  const ref = (dir: string): StoreRef => ({
+    id: "claude-empty",
+    label: "Claude empty",
+    provider: "claude-empty",
+    kind: "claude",
+    store: dir,
+    reader: "claude-jsonl",
+    quotaKind: "anthropic",
+  });
+
+  it("keeps an empty card by default, because it states that the account exists", async () => {
+    const dir = join(root, "empty");
+    mkdirSync(join(dir, "projects"), { recursive: true });
+    const result = await buildSnapshot({
+      refs: [ref(dir)], budgets: {}, defaultStartDay: 1, quotas: new Map(), prices: {}, hoursPerWorkday: 8, hourlyRateUsd: 0,
+    });
+    expect(result.accounts).toHaveLength(1);
+    expect(result.accounts[0]?.totals.turns).toBe(0);
+  });
+
+  it("hides the card when asked, and still totals the spend it has", async () => {
+    const dir = join(root, "empty-hide");
+    writeClaudeStore(dir, [
+      claudeTurn(new Date().toISOString(), "claude-sonnet-5-5", { input_tokens: 100, output_tokens: 50 }),
+    ]);
+    const result = await buildSnapshot({
+      refs: [ref(dir)], budgets: {}, defaultStartDay: 1, quotas: new Map(), prices: plans, hoursPerWorkday: 8, hourlyRateUsd: 0,
+      hideEmptyAccounts: true,
+    });
+    // This account has spend, so it stays: hiding is about cards with nothing to report.
+    expect(result.accounts).toHaveLength(1);
+  });
+
+  it("hides a card with no spend, no window and no balance", async () => {
+    const dir = join(root, "nothing");
+    mkdirSync(join(dir, "projects"), { recursive: true });
+    const result = await buildSnapshot({
+      refs: [ref(dir)], budgets: {}, defaultStartDay: 1, quotas: new Map(), prices: {}, hoursPerWorkday: 8, hourlyRateUsd: 0,
+      hideEmptyAccounts: true,
+    });
+    expect(result.accounts).toHaveLength(0);
+  });
+
+  it("hides a card whose turns cost nothing, because zero spend is not a spend story", async () => {
+    const dir = join(root, "free-only");
+    const projects = join(dir, "projects", "-demo-");
+    mkdirSync(projects, { recursive: true });
+    writeFileSync(
+      join(projects, "session.jsonl"),
+      claudeTurn(new Date().toISOString(), "deepseek-free", { input_tokens: 100, output_tokens: 50 }),
+    );
+    const result = await buildSnapshot({
+      refs: [ref(dir)], budgets: {}, defaultStartDay: 1, quotas: new Map(), prices: {}, hoursPerWorkday: 8, hourlyRateUsd: 0,
+      hideEmptyAccounts: true,
+    });
+    expect(result.accounts).toHaveLength(0);
+  });
+
+  it("keeps a card whose only information is a wallet balance", async () => {
+    const dir = join(root, "wallet-only");
+    mkdirSync(join(dir, "projects"), { recursive: true });
+    const quota: Quota = {
+      source: "opendesign", planLabel: "Go", windows: [], balanceUsd: 1, balanceLimitUsd: null,
+      balanceUnit: "usd", note: null, fetchedAt: new Date().toISOString(),
+    };
+    const result = await buildSnapshot({
+      refs: [ref(dir)], budgets: {}, defaultStartDay: 1, quotas: new Map([["claude-empty", quota]]),
+      prices: {}, hoursPerWorkday: 8, hourlyRateUsd: 0, hideEmptyAccounts: true,
+    });
+    expect(result.accounts).toHaveLength(1);
+  });
+});
+
+describe("finding a card budget", () => {
+  it("applies a budget written against a harness that is not the bucket's own store", async () => {
+    // A merged OpenDesign plan is fed by Pi and OpenCode. Its card is built from whichever store
+    // arrived first, so a budget keyed by the other harness must still apply: otherwise the
+    // recommended pace silently disappears the day a different agent runs first.
+    const piDir = join(root, "pi-budget");
+    const claudeDir = join(root, "claude-budget");
+    const projects = join(claudeDir, "projects", "-demo-");
+    mkdirSync(projects, { recursive: true });
+    writeFileSync(
+      join(projects, "session.jsonl"),
+      claudeTurn(new Date().toISOString(), "claude-sonnet-5-5", { input_tokens: 1000, output_tokens: 500 }),
+    );
+    mkdirSync(join(piDir, "sessions"), { recursive: true });
+
+    const result = await buildSnapshot({
+      refs: [
+        {
+          id: "opendesign-pi-1",
+          label: "OpenDesign (Pi) 1",
+          provider: "opendesign-pi-1",
+          kind: "opendesign",
+          store: piDir,
+          reader: "pi-jsonl",
+          quotaKind: "none",
+        },
+        {
+          id: "opendesign-1",
+          label: "OpenDesign 1",
+          provider: "opendesign-1",
+          kind: "opendesign",
+          store: claudeDir,
+          reader: "claude-jsonl",
+          quotaKind: "opendesign-or-anthropic",
+        },
+      ],
+      budgets: { "opendesign-pi-1:opendesign": { budgetUsd: 10 } },
+      defaultStartDay: 1,
+      quotas: new Map(),
+      prices: plans,
+      hoursPerWorkday: 8,
+      hourlyRateUsd: 0,
+      openDesignPlanFor: () => "default",
+    });
+
+    expect(result.accounts).toHaveLength(1);
+    expect(result.accounts[0]?.budgetUsd).toBe(10);
+  });
+});
